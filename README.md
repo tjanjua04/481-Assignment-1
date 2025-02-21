@@ -1,3 +1,3 @@
 # 481-Assignment-1
 
-Tauheed Janjua and Chrisopher Guerrera and maybe Vinh Pham (idk yet)
+Tauheed Janjua and Christopher Guerra, and maybe Vinh Pham (idk yet)
