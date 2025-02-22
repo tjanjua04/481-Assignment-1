@@ -1,11 +1,9 @@
 from queue import Queue
-from itertools import product  # Using itertools for clarity
 
 class Problem:
     def __init__(self, initial, goal):
         self.initial = initial
         self.goal = goal
-    
     def goal_test(self, state):
         return state == self.goal
 
@@ -18,21 +16,22 @@ class MissCannibalsVariant(Problem):
     
     def actions(self, state):
         m, c, onLeft = state
-        actions = []
-        # Generate all moves with 1 to 3 persons; canonical form: all M's then all C's
-        possible_moves = ["M" * m_count + "C" * (i - m_count) 
-                          for i in range(1, 4) 
-                          for m_count in range(i + 1)]
-        for move in possible_moves:
-            missionaries_to_move = move.count('M')
-            cannibals_to_move = move.count('C')
-            if onLeft:
-                new_m, new_c = m - missionaries_to_move, c - cannibals_to_move
-            else:
-                new_m, new_c = m + missionaries_to_move, c + cannibals_to_move
-            if self.is_valid_state(new_m, new_c):
-                actions.append(move)
-        return actions
+        moves = set()
+        for i in range(1, 4):  # boat capacity: 1 to 3 persons
+            for m_count in range(i + 1):
+                c_count = i - m_count
+                if onLeft:
+                    if m_count > m or c_count > c:
+                        continue
+                else:
+                    if m_count > (self.N1 - m) or c_count > (self.N2 - c):
+                        continue
+                move = 'M' * m_count + 'C' * c_count
+                if move:
+                    new_m, new_c = (m - m_count, c - c_count) if onLeft else (m + m_count, c + c_count)
+                    if self.is_valid_state(new_m, new_c):
+                        moves.add(move)
+        return list(moves)
     
     def result(self, state, action):
         m, c, onLeft = state
