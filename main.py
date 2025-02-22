@@ -17,7 +17,7 @@ class MissCannibalsVariant(Problem):
     def actions(self, state):
         m, c, onLeft = state
         moves = set()
-        for i in range(1, 4):  # boat capacity: 1 to 3 persons
+        for i in range(1, 4):
             for m_count in range(i + 1):
                 c_count = i - m_count
                 if onLeft:
@@ -28,8 +28,8 @@ class MissCannibalsVariant(Problem):
                         continue
                 move = 'M' * m_count + 'C' * c_count
                 if move:
-                    new_m, new_c = (m - m_count, c - c_count) if onLeft else (m + m_count, c + c_count)
-                    if self.is_valid_state(new_m, new_c):
+                    new_state = self._simulate(state, move)
+                    if new_state != state and self.is_valid_state(new_state[0], new_state[1]):
                         moves.add(move)
         return list(moves)
     
@@ -38,10 +38,17 @@ class MissCannibalsVariant(Problem):
         missionaries_to_move = action.count('M')
         cannibals_to_move = action.count('C')
         if onLeft:
+            if missionaries_to_move > m or cannibals_to_move > c:
+                return state
             new_m, new_c = m - missionaries_to_move, c - cannibals_to_move
         else:
+            if missionaries_to_move > (self.N1 - m) or cannibals_to_move > (self.N2 - c):
+                return state
             new_m, new_c = m + missionaries_to_move, c + cannibals_to_move
         return (new_m, new_c, not onLeft)
+    
+    def _simulate(self, state, action):
+        return self.result(state, action)
     
     def is_valid_state(self, m, c):
         if m < 0 or c < 0 or m > self.N1 or c > self.N2:
@@ -82,8 +89,8 @@ def breadth_first_graph_search(problem):
     return []
 
 if __name__ == '__main__':
-    mc = MissCannibalsVariant(4, 4)
-    path = depth_first_graph_search(mc)
-    print(path if path else "No solution found")
-    path = breadth_first_graph_search(mc)
-    print(path if path else "No solution found")
+    for N1, N2 in [(4,4), (3,3), (3,2), (3,1)]:
+        print(f"Solving for N1={N1}, N2={N2}")
+        mc = MissCannibalsVariant(N1, N2)
+        path = breadth_first_graph_search(mc)
+        print(path if path else "No solution found")
