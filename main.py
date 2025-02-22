@@ -1,4 +1,5 @@
 from queue import Queue
+from itertools import product  # Using itertools for clarity
 
 class Problem:
     def __init__(self, initial, goal):
@@ -18,32 +19,29 @@ class MissCannibalsVariant(Problem):
     def actions(self, state):
         m, c, onLeft = state
         actions = []
-        possible_moves = ['M', 'C', 'MM', 'MC', 'CC', 'MMC']
-        
+        # Generate all moves with 1 to 3 persons; canonical form: all M's then all C's
+        possible_moves = ["M" * m_count + "C" * (i - m_count) 
+                          for i in range(1, 4) 
+                          for m_count in range(i + 1)]
         for move in possible_moves:
             missionaries_to_move = move.count('M')
             cannibals_to_move = move.count('C')
-            
             if onLeft:
                 new_m, new_c = m - missionaries_to_move, c - cannibals_to_move
             else:
                 new_m, new_c = m + missionaries_to_move, c + cannibals_to_move
-            
             if self.is_valid_state(new_m, new_c):
                 actions.append(move)
-        
         return actions
     
     def result(self, state, action):
         m, c, onLeft = state
         missionaries_to_move = action.count('M')
         cannibals_to_move = action.count('C')
-        
         if onLeft:
             new_m, new_c = m - missionaries_to_move, c - cannibals_to_move
         else:
             new_m, new_c = m + missionaries_to_move, c + cannibals_to_move
-        
         return (new_m, new_c, not onLeft)
     
     def is_valid_state(self, m, c):
@@ -56,7 +54,6 @@ class MissCannibalsVariant(Problem):
 def depth_first_graph_search(problem):
     stack = [(problem.initial, [])]
     explored = set()
-    
     while stack:
         state, path = stack.pop()
         if problem.goal_test(state):
@@ -64,29 +61,30 @@ def depth_first_graph_search(problem):
         if state not in explored:
             explored.add(state)
             for action in problem.actions(state):
-                stack.append((problem.result(state, action), path + [action]))
-    return None
+                new_state = problem.result(state, action)
+                if new_state not in explored:
+                    stack.append((new_state, path + [action]))
+    return []
 
 def breadth_first_graph_search(problem):
-    queue = Queue()
-    queue.put((problem.initial, []))
+    q = Queue()
+    q.put((problem.initial, []))
     explored = set()
-    
-    while not queue.empty():
-        state, path = queue.get()
+    while not q.empty():
+        state, path = q.get()
         if problem.goal_test(state):
             return path
         if state not in explored:
             explored.add(state)
             for action in problem.actions(state):
-                queue.put((problem.result(state, action), path + [action]))
-    return None
+                new_state = problem.result(state, action)
+                if new_state not in explored:
+                    q.put((new_state, path + [action]))
+    return []
 
 if __name__ == '__main__':
     mc = MissCannibalsVariant(4, 4)
-    
     path = depth_first_graph_search(mc)
-    print(path)
-    
+    print(path if path else "No solution found")
     path = breadth_first_graph_search(mc)
-    print(path)
+    print(path if path else "No solution found")
